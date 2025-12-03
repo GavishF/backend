@@ -38,7 +38,15 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
-  }
+  },
+  cart: [{
+    productId: mongoose.Schema.Types.ObjectId,
+    quantity: {
+      type: Number,
+      default: 1
+    },
+    price: Number
+  }]
 }, {
   timestamps: true
 });

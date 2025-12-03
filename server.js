@@ -18,6 +18,7 @@ import userRoutes from './routes/userRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import ticketRoutes from './routes/ticketRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
 
 // Connect to database
 connectDB();
@@ -34,11 +35,23 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Nikola Fashion E-commerce API' });
 });
 
+// Categories endpoint
+app.get('/api/categories', (req, res) => {
+  const CATEGORIES = ['men', 'women', 'kids', 'accessories'];
+  const categories = CATEGORIES.map((cat, idx) => ({
+    _id: idx.toString(),
+    name: cat.charAt(0).toUpperCase() + cat.slice(1),
+    slug: cat
+  }));
+  res.json(categories);
+});
+
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/tickets', ticketRoutes);
+app.use('/api/cart', cartRoutes);
 
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {

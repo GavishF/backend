@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: nikola-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        scope: project
+      - key: JWT_SECRET
+        scope: project
+      - key: SUPABASE_URL
+        scope: project
+      - key: SUPABASE_KEY
+        scope: project
+      - key: PORT
+        value: 10000
