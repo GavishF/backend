@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import { authenticateToken, authorizeRole } from '../middleware/auth.js';
+import { sendEmail } from '../utils/emailService.js';
 
 const router = express.Router();
 
@@ -31,11 +32,22 @@ router.post('/send-otp', async (req, res) => {
       expiresAt: Date.now() + 10 * 60 * 1000
     });
 
-    // In production, send OTP via email service
-    console.log(`OTP for ${email}: ${otp}`);
+    // Send OTP via email
+    const html = `
+      <h2>Newsletter Subscription OTP</h2>
+      <p>Your one-time password for newsletter subscription is:</p>
+      <h1 style="color: #ff0000; letter-spacing: 2px;">${otp}</h1>
+      <p>This OTP will expire in 10 minutes.</p>
+      <p>If you didn't request this, please ignore this email.</p>
+      <p>Best regards,<br/>Nikola Team</p>
+    `;
+    
+    await sendEmail(email, 'Nikola Newsletter Subscription OTP', html);
+    console.log(`OTP sent to ${email}`);
 
     res.json({ message: 'OTP sent to email', success: true });
   } catch (error) {
+    console.error('Error sending OTP:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -137,13 +149,19 @@ router.post('/broadcast', [authenticateToken, authorizeRole(['admin'])], async (
       return res.status(400).json({ message: 'Subject and message are required' });
     }
 
-    // In production, send actual emails via email service
-    console.log(`Broadcasting to ${newsletters.subscribers.length} subscribers`);
-    console.log(`Subject: ${subject}`);
-    console.log(`Message: ${message}`);
+    // Send broadcast emails to all subscribers
+    let sentCount = 0;
+    for (const email of newsletters.subscribers) {
+      try {
+        await sendEmail(email, subject, message);
+        sentCount++;
+      } catch (emailError) {
+        console.error(`Failed to send email to ${email}:`, emailError);
+      }
+    }
 
     res.json({ 
-      message: `Broadcast sent to ${newsletters.subscribers.length} subscribers`,
+      message: `Broadcast sent to ${sentCount}/${newsletters.subscribers.length} subscribers`,
       success: true 
     });
   } catch (error) {
