@@ -125,6 +125,17 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// @route   GET /api/users/all
+// @desc    Get all users (admin endpoint)
+router.get('/all', authenticateToken, async (req, res) => {
+  try {
+    const users = await User.find({}).select('-password');
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // @route   GET /api/users
 // @desc    Get current user profile
 router.get('/', authenticateToken, async (req, res) => {

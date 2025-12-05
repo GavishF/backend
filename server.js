@@ -19,6 +19,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import ticketRoutes from './routes/ticketRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
+import newsletterRoutes from './routes/newsletterRoutes.js';
 
 // Connect to database
 connectDB();
@@ -52,6 +53,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {
