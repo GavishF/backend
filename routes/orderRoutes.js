@@ -133,12 +133,13 @@ router.get('/:page/:limit', async (req, res) => {
     const transformedOrders = orders.map(order => ({
       _id: order._id,
       orderID: order._id.toString(),
-      customerName: order.shippingAddress?.street || 'Guest',
-      email: order.user?.email || 'guest@example.com',
+      name: order.shippingAddress?.street || 'Guest',
+      email: order.shippingAddress?.phone || 'guest@example.com',
       phone: order.shippingAddress?.phone || 'N/A',
       address: `${order.shippingAddress?.street}, ${order.shippingAddress?.city}`,
-      totalPrice: order.totalPrice,
+      total: order.totalPrice || 0,
       status: order.status,
+      notes: order.notes || '',
       date: order.createdAt,
       itemCount: order.orderItems?.length || 0,
       isPaid: order.isPaid
@@ -183,12 +184,13 @@ router.get('/page/:pageNum', async (req, res) => {
     const transformedOrders = orders.map(order => ({
       _id: order._id,
       orderID: order._id.toString(),
-      customerName: order.shippingAddress?.street || 'Guest',
-      email: order.user?.email || 'guest@example.com',
+      name: order.shippingAddress?.street || 'Guest',
+      email: order.shippingAddress?.phone || 'guest@example.com',
       phone: order.shippingAddress?.phone || 'N/A',
       address: `${order.shippingAddress?.street}, ${order.shippingAddress?.city}`,
-      totalPrice: order.totalPrice,
+      total: order.totalPrice || 0,
       status: order.status,
+      notes: order.notes || '',
       date: order.createdAt,
       itemCount: order.orderItems?.length || 0,
       isPaid: order.isPaid
