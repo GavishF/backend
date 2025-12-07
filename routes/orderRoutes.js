@@ -114,7 +114,57 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET ALL ORDERS WITH PAGINATION
+// GET ALL ORDERS WITH PAGINATION - supports both /page/:pageNum and /:page/:limit formats
+router.get('/:page/:limit', async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.params.page) || 1);
+    const limit = Math.max(1, parseInt(req.params.limit) || 10);
+    const skip = (page - 1) * limit;
+
+    const [orders, total] = await Promise.all([
+      Order.find({})
+        .populate('user', 'name email phone')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Order.countDocuments()
+    ]);
+
+    const transformedOrders = orders.map(order => ({
+      _id: order._id,
+      orderID: order._id.toString(),
+      customerName: order.shippingAddress?.street || 'Guest',
+      email: order.user?.email || 'guest@example.com',
+      phone: order.shippingAddress?.phone || 'N/A',
+      address: `${order.shippingAddress?.street}, ${order.shippingAddress?.city}`,
+      totalPrice: order.totalPrice,
+      status: order.status,
+      date: order.createdAt,
+      itemCount: order.orderItems?.length || 0,
+      isPaid: order.isPaid
+    }));
+
+    res.json({
+      success: true,
+      orders: transformedOrders,
+      totalPages: Math.ceil(total / limit),
+      pagination: {
+        current: page,
+        total: Math.ceil(total / limit),
+        count: orders.length,
+        totalRecords: total
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// GET ALL ORDERS WITH PAGINATION (alternate format)
 router.get('/page/:pageNum', async (req, res) => {
   try {
     const page = Math.max(1, parseInt(req.params.pageNum) || 1);
@@ -147,6 +197,7 @@ router.get('/page/:pageNum', async (req, res) => {
     res.json({
       success: true,
       orders: transformedOrders,
+      totalPages: Math.ceil(total / limit),
       pagination: {
         current: page,
         total: Math.ceil(total / limit),
