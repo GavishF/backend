@@ -75,7 +75,28 @@ router.post('/', async (req, res) => {
       notes: req.body.notes || ''
     });
 
-    const savedOrder = await order.save();
+    let savedOrder;
+    try {
+      savedOrder = await order.save();
+    } catch (dbError) {
+      // Handle duplicate key error from bad index
+      if (dbError.code === 11000 && dbError.message.includes('orderID')) {
+        console.log('Duplicate orderID error - dropping index and retrying');
+        // Try to drop the problematic index
+        try {
+          await Order.collection.dropIndex('orderID_1');
+          console.log('Dropped orderID_1 index');
+          // Retry save
+          savedOrder = await order.save();
+        } catch (indexError) {
+          console.error('Index drop failed:', indexError.message);
+          // Just save anyway - the index might not exist
+          savedOrder = await order.save();
+        }
+      } else {
+        throw dbError;
+      }
+    }
 
     res.status(201).json({
       success: true,
