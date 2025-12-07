@@ -156,18 +156,20 @@ router.get('/', authenticateToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    const fullName = user.name || '';
     res.json({
       _id: user._id,
-      name: user.name,
-      firstName: user.name.split(' ')[0] || '',
-      lastName: user.name.split(' ').slice(1).join(' ') || '',
+      name: fullName,
+      firstName: fullName.split(' ')[0] || '',
+      lastName: fullName.split(' ').slice(1).join(' ') || '',
       email: user.email,
-      phone: user.phone,
+      phone: user.phone || '',
       role: user.role,
-      address: user.address,
+      address: user.address || '',
       isActive: user.isActive
     });
   } catch (error) {
+    console.error('GET / user error:', error);
     res.status(500).json({ message: error.message });
   }
 });
