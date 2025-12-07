@@ -183,32 +183,4 @@ router.get('/all', authenticateToken, async (req, res) => {
   }
 });
 
-// @route   GET /api/users
-// @desc    Get current user profile
-router.get('/', authenticateToken, async (req, res) => {
-  try {
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: 'User ID not found in token' });
-    }
-    const user = await User.findById(req.user.id).select('-password');
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json({
-      _id: user._id,
-      name: user.name || '',
-      firstName: (user.name || '').split(' ')[0] || '',
-      lastName: (user.name || '').split(' ').slice(1).join(' ') || '',
-      email: user.email,
-      phone: user.phone || '',
-      role: user.role,
-      address: user.address || '',
-      isActive: user.isActive
-    });
-  } catch (error) {
-    console.error('GET /api/users error:', error);
-    res.status(500).json({ message: error.message });
-  }
-});
-
 export default router;
