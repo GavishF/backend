@@ -5,16 +5,14 @@ const router = express.Router();
 
 router.post('/', async (req, res) => {
   try {
-    console.log('Order POST received:', JSON.stringify(req.body).substring(0, 200));
+    console.log('=== Order POST received ===');
+    console.log('Body keys:', Object.keys(req.body));
+    console.log('Body:', JSON.stringify(req.body).substring(0, 300));
     
-    const orderItems = req.body.orderItems || (req.body.items ? req.body.items.map(item => ({
-      name: item.name,
-      quantity: item.qty || item.quantity,
-      price: item.price,
-      size: item.size || '',
-      color: item.color || ''
-      // Don't set product reference for now - just store name/price/qty
-    })) : []);
+    const orderItems = req.body.orderItems || req.body.items || [];
+    
+    console.log('Parsed orderItems count:', orderItems.length);
+    console.log('First item sample:', orderItems[0]);
     
     // Build shipping address with fallbacks for missing fields
     const shippingAddress = {
@@ -26,11 +24,12 @@ router.post('/', async (req, res) => {
     };
 
     if (!orderItems || orderItems.length === 0) {
-      return res.status(400).json({ message: 'No order items', received: req.body });
+      console.log('ERROR: No order items found. Received:', req.body);
+      return res.status(400).json({ message: 'No order items provided' });
     }
 
     // Calculate totals if not provided
-    const itemsPrice = req.body.itemsPrice || orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const itemsPrice = req.body.itemsPrice || orderItems.reduce((sum, item) => sum + ((item.price || 0) * (item.qty || item.quantity || 1)), 0);
     const taxPrice = req.body.taxPrice || 0;
     const shippingPrice = req.body.shippingPrice || 0;
     const totalPrice = req.body.totalPrice || (itemsPrice + taxPrice + shippingPrice);
@@ -39,8 +38,14 @@ router.post('/', async (req, res) => {
 
     // Create order with minimal required fields (user is optional for demo)
     const order = new Order({
-      user: req.body.user || null, // Optional for demo purposes
-      orderItems,
+      user: req.body.user || null,
+      orderItems: orderItems.map(item => ({
+        name: item.name || 'Unknown Product',
+        quantity: item.qty || item.quantity || 1,
+        price: item.price || 0,
+        size: item.size || '',
+        color: item.color || ''
+      })),
       shippingAddress,
       paymentMethod: req.body.paymentMethod || 'card',
       itemsPrice,
@@ -55,8 +60,9 @@ router.post('/', async (req, res) => {
     console.log('Order created successfully:', createdOrder._id);
     res.status(201).json(createdOrder);
   } catch (error) {
-    console.error('Order creation error:', error.message, error.errors);
-    res.status(400).json({ message: error.message, errors: error.errors });
+    console.error('Order creation error:', error.message);
+    console.error('Error details:', error);
+    res.status(400).json({ message: error.message || 'Failed to create order' });
   }
 });
 
