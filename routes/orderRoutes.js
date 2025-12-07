@@ -24,8 +24,11 @@ router.post('/', async (req, res) => {
     };
 
     if (!orderItems || orderItems.length === 0) {
-      console.log('ERROR: No order items found. Received:', req.body);
-      return res.status(400).json({ message: 'No order items provided' });
+      console.log('ERROR: No order items found. Received body:', req.body);
+      return res.status(400).json({ 
+        message: 'Cart is empty. Please add items before checkout.',
+        debug: { itemsCount: orderItems ? orderItems.length : 0, bodyKeys: Object.keys(req.body) }
+      });
     }
 
     // Calculate totals if not provided
