@@ -4,11 +4,15 @@ import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Simple cart endpoint that doesn't require auth
-// Frontend stores cart in localStorage anyway
+// Helper function
+const calculateTotal = (cart) => {
+  return cart.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
+};
+
+// @route   POST /api/cart/add
+// @desc    Add item to cart (no auth required - frontend handles it)
 router.post('/add', async (req, res) => {
   try {
-    // Just return success - frontend handles cart in localStorage
     const { productId, qty } = req.body;
     
     if (!productId || !qty) {
@@ -32,33 +36,27 @@ router.post('/add', async (req, res) => {
 });
 
 // @route   GET /api/cart
-// @desc    Get user's cart
+// @desc    Get user's cart (requires auth)
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
     }
     
     res.json({ 
+      success: true,
       items: user.cart || [],
       total: calculateTotal(user.cart || [])
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-      user.cart.push({ productId, quantity: qty });
-    }
-
-    await user.save();
-    
-    res.json({ 
-      items: user.cart,
-      total: calculateTotal(user.cart)
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
   }
 });
 
@@ -69,26 +67,34 @@ router.post('/remove', authenticateToken, async (req, res) => {
     const { productId } = req.body;
     
     if (!productId) {
-      return res.status(400).json({ message: 'productId is required' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'productId is required' 
+      });
     }
 
     const user = await User.findById(req.user.id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
     }
 
     if (!user.cart) user.cart = [];
-
     user.cart = user.cart.filter(item => String(item.productId) !== String(productId));
-
     await user.save();
     
     res.json({ 
+      success: true,
       items: user.cart,
       total: calculateTotal(user.cart)
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 });
 
@@ -98,20 +104,26 @@ router.delete('/', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
     }
 
     user.cart = [];
     await user.save();
     
-    res.json({ message: 'Cart cleared', items: [] });
+    res.json({ 
+      success: true,
+      message: 'Cart cleared', 
+      items: [] 
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 });
-
-function calculateTotal(cart) {
-  return cart.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
-}
 
 export default router;
