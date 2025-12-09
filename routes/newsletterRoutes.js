@@ -43,7 +43,7 @@ router.post('/send-otp', async (req, res) => {
         <p>Hi there,</p>
         <p>Thank you for subscribing to the Nikola Newsletter! Please use the OTP below to verify your email:</p>
         <div style="background-color: #f0f0f0; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-          <h1 style="color: #007bff; margin: 0; letter-spacing: 5px;">${otp}</h1>
+          <h1 style="color: #ff0000; margin: 0; letter-spacing: 5px; font-size: 48px;">${otp}</h1>
         </div>
         <p style="color: #666; font-size: 14px;">This OTP is valid for 10 minutes.</p>
         <p>If you didn't request this, please ignore this email.</p>
