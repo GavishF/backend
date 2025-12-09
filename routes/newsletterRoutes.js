@@ -24,6 +24,12 @@ router.post('/send-otp', async (req, res) => {
       return res.status(400).json({ message: 'Email is required' });
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
     // Generate and store OTP (valid for 10 minutes)
     const otp = generateOTP();
     const expiresAt = Date.now() + 10 * 60 * 1000;
@@ -45,12 +51,18 @@ router.post('/send-otp', async (req, res) => {
       </div>
     `;
 
+    console.log(`Attempting to send OTP to ${email}...`);
     await sendEmail(email, 'Nikola Newsletter - Verify Your Email', html);
 
     res.json({ message: 'OTP sent to email', email });
   } catch (error) {
-    console.error('Error sending OTP:', error);
-    res.status(500).json({ message: 'Failed to send OTP: ' + error.message });
+    console.error('Error sending OTP:', error.message);
+    console.error('Full error:', error);
+    res.status(500).json({ 
+      message: 'Failed to send OTP', 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
