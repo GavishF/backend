@@ -237,4 +237,86 @@ router.post('/:id/toggle-role', authenticateToken, async (req, res) => {
   }
 });
 
+// @route   POST /api/users/send-otp
+// @desc    Send OTP for password reset
+router.post('/send-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    if (!req.otpStore) req.otpStore = new Map();
+    req.otpStore.set(email, {
+      otp,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 10 * 60 * 1000
+    });
+
+    const html = `
+      <h2>Password Reset OTP</h2>
+      <p>Your one-time password for password reset is:</p>
+      <h1 style="color: #ff0000; letter-spacing: 2px;">${otp}</h1>
+      <p>This OTP will expire in 10 minutes.</p>
+      <p>If you didn't request this, please ignore this email.</p>
+      <p>Best regards,<br/>Nikola Team</p>
+    `;
+    
+    try {
+      const sendEmail = (await import('../utils/emailService.js')).sendEmail;
+      await sendEmail(email, 'Nikola Password Reset OTP', html);
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError);
+    }
+
+    res.json({ message: 'OTP sent to email', success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @route   POST /api/users/reset-password
+// @desc    Reset password with OTP
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, otp, password } = req.body;
+    
+    if (!email || !otp || !password) {
+      return res.status(400).json({ message: 'Email, OTP, and password are required' });
+    }
+
+    if (!req.otpStore) req.otpStore = new Map();
+    const stored = req.otpStore.get(email);
+    
+    if (!stored || stored.otp !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
+
+    if (Date.now() > stored.expiresAt) {
+      req.otpStore.delete(email);
+      return res.status(400).json({ message: 'OTP has expired' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.password = password;
+    await user.save();
+    req.otpStore.delete(email);
+
+    res.json({ success: true, message: 'Password reset successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;

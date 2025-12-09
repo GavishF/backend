@@ -26,6 +26,15 @@ connectDB();
 
 const app = express();
 
+// Global OTP store for password reset
+app.locals.otpStore = new Map();
+
+// Middleware to attach OTP store to requests
+app.use((req, res, next) => {
+  req.otpStore = app.locals.otpStore;
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
