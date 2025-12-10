@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const contestEntrySchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -8,4 +8,4 @@ const contestEntrySchema = new mongoose.Schema({
   prizeCode: { type: String }
 });
 
-module.exports = mongoose.model('ContestEntry', contestEntrySchema);
+export default mongoose.model('ContestEntry', contestEntrySchema);

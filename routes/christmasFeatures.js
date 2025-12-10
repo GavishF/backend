@@ -1,10 +1,12 @@
-const express = require('express');
+import express from 'express';
+import crypto from 'crypto';
+import DiscountCode from '../models/DiscountCode.js';
+import ContestEntry from '../models/ContestEntry.js';
+import WishlistItem from '../models/WishlistItem.js';
+import { authenticateToken } from '../middleware/auth.js';
+
 const router = express.Router();
-const crypto = require('crypto');
-const DiscountCode = require('../models/DiscountCode');
-const ContestEntry = require('../models/ContestEntry');
-const WishlistItem = require('../models/WishlistItem');
-const auth = require('../middleware/auth');
+const auth = authenticateToken;
 
 // Generate unique discount code
 const generateDiscountCode = (type = 'wishlist') => {
@@ -269,4 +271,4 @@ router.get('/codes', auth, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

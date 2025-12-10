@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const discountCodeSchema = new mongoose.Schema({
   code: { type: String, unique: true, required: true },
@@ -13,4 +13,4 @@ const discountCodeSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('DiscountCode', discountCodeSchema);
+export default mongoose.model('DiscountCode', discountCodeSchema);
