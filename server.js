@@ -21,6 +21,7 @@ import ticketRoutes from './routes/ticketRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
 import christmasRoutes from './routes/christmasRoutes.js';
+import christmasFeaturesRoutes from './routes/christmasFeatures.js';
 
 // Connect to database
 connectDB();
@@ -65,6 +66,7 @@ app.use('/api/tickets', ticketRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/christmas', christmasRoutes);
+app.use('/api/christmas-features', christmasFeaturesRoutes);
 
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {
