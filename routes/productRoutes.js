@@ -130,11 +130,25 @@ router.post('/', authenticateToken, authorizeRole(['admin']), upload.array('imag
       }
     }
 
+    // Handle category as array
+    let parsedCategory = [];
+    if (category) {
+      if (Array.isArray(category)) {
+        parsedCategory = category;
+      } else if (typeof category === 'string') {
+        try {
+          parsedCategory = JSON.parse(category);
+        } catch (e) {
+          parsedCategory = [category];
+        }
+      }
+    }
+
     const product = new Product({
       name,
       description,
       price,
-      category,
+      category: parsedCategory,
       sizes: sizes ? (typeof sizes === 'string' ? JSON.parse(sizes) : sizes) : [],
       colors: colors ? (typeof colors === 'string' ? JSON.parse(colors) : colors) : [],
       images,
@@ -163,7 +177,20 @@ router.put('/:id', authenticateToken, authorizeRole(['admin']), upload.array('im
     product.name = name || product.name;
     product.description = description || product.description;
     product.price = price || product.price;
-    product.category = category || product.category;
+    
+    // Handle category as array
+    if (category) {
+      if (Array.isArray(category)) {
+        product.category = category;
+      } else if (typeof category === 'string') {
+        try {
+          product.category = JSON.parse(category);
+        } catch (e) {
+          product.category = [category];
+        }
+      }
+    }
+    
     product.sizes = sizes ? JSON.parse(sizes) : product.sizes;
     product.colors = colors ? JSON.parse(colors) : product.colors;
     product.stock = stock !== undefined ? stock : product.stock;
