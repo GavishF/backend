@@ -22,6 +22,15 @@ import cartRoutes from './routes/cartRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
 import holidayRoutes from './routes/christmasRoutes.js';
 import holidayFeaturesRoutes from './routes/christmasFeatures.js';
+import promoCodeRoutes from './routes/promoCodeRoutes.js';
+import tagsRoutes from './routes/tagsRoutes.js';
+import sizeGuideRoutes from './routes/sizeGuideRoutes.js';
+import giftCardRoutes from './routes/giftCardRoutes.js';
+import loyaltyRoutes from './routes/loyaltyRoutes.js';
+import collectionsRoutes from './routes/collectionsRoutes.js';
+import returnsRoutes from './routes/returnsRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
+import faqRoutes from './routes/faqRoutes.js';
 
 // Connect to database
 connectDB();
@@ -67,6 +76,15 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/holiday', holidayRoutes);
 app.use('/api/holiday-features', holidayFeaturesRoutes);
+app.use('/api/promo-codes', promoCodeRoutes);
+app.use('/api/tags', tagsRoutes);
+app.use('/api/size-guides', sizeGuideRoutes);
+app.use('/api/gift-cards', giftCardRoutes);
+app.use('/api/loyalty', loyaltyRoutes);
+app.use('/api/collections', collectionsRoutes);
+app.use('/api/returns', returnsRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/faq', faqRoutes);
 
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {
