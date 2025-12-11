@@ -2,25 +2,84 @@ import express from 'express';
 import multer from 'multer';
 import Product from '../models/Product.js';
 import Review from '../models/Review.js';
+import Category from '../models/Category.js';
 import { uploadImage } from '../utils/supabaseService.js';
 import { authenticateToken, authorizeRole } from '../middleware/auth.js';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Categories list (from Product schema enum)
-const CATEGORIES = ['men', 'women', 'kids', 'accessories'];
+// Default categories list
+const DEFAULT_CATEGORIES = ['men', 'women', 'kids', 'accessories'];
 
 // @route   GET /api/products/categories
-// @desc    Get all available categories
+// @desc    Get all available categories (default + custom)
 router.get('/categories', async (req, res) => {
   try {
-    const categories = CATEGORIES.map((cat, idx) => ({
-      _id: idx.toString(),
+    // Get custom categories from database
+    const customCategories = await Category.find();
+    
+    // Combine default and custom categories
+    const defaultCats = DEFAULT_CATEGORIES.map((cat, idx) => ({
+      _id: `default-${idx}`,
       name: cat.charAt(0).toUpperCase() + cat.slice(1),
-      slug: cat
+      slug: cat,
+      isDefault: true
     }));
-    res.json(categories);
+    
+    const allCategories = [...defaultCats, ...customCategories];
+    res.json(allCategories);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @route   POST /api/products/categories
+// @desc    Create a new custom category (Admin only)
+router.post('/categories', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: 'Category name is required' });
+    }
+    
+    // Check if category already exists
+    const existing = await Category.findOne({ 
+      slug: name.toLowerCase().trim().replace(/\s+/g, '-')
+    });
+    if (existing) {
+      return res.status(400).json({ message: 'Category already exists' });
+    }
+    
+    const category = new Category({
+      name: name.trim(),
+      slug: name.toLowerCase().trim().replace(/\s+/g, '-'),
+      description: description || ''
+    });
+    
+    const saved = await category.save();
+    res.status(201).json(saved);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// @route   DELETE /api/products/categories/:id
+// @desc    Delete a custom category (Admin only)
+router.delete('/categories/:id', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    // Don't allow deleting default categories
+    if (req.params.id.startsWith('default-')) {
+      return res.status(400).json({ message: 'Cannot delete default categories' });
+    }
+    
+    const category = await Category.findByIdAndDelete(req.params.id);
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+    
+    res.json({ message: 'Category deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
